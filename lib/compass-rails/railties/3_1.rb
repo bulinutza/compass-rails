@@ -26,10 +26,10 @@ class Rails::Railtie::Configuration
   def compass
     @compass ||= begin
       data = if (config_file = Compass.detect_configuration_file) && (config_data = Compass.configuration_for(config_file))
-        config_data
-      else
-        Compass::Configuration::Data.new("rails_config")
-      end
+               config_data
+             else
+               Compass::Configuration::Data.new("rails_config")
+             end
       data.project_type = :rails # Forcing this makes sure all the rails defaults will be loaded.
       Compass.add_configuration(:rails)
       Compass.add_configuration(data)
@@ -88,12 +88,16 @@ module CompassRails
   class Railtie < Rails::Railtie
 
     initializer "compass.initialize_rails", :group => :all do |app|
-      require 'compass-rails/patches/3_1'
-      # Configure compass for use within rails, and provide the project configuration
-      # that came via the rails boot process.
-      CompassRails.check_for_double_boot!
-      Compass.discover_extensions!
-      CompassRails.configure_rails!(app)
+      if CompassRails.asset_pipeline_enabled?
+        require 'compass-rails/patches/3_1'
+        # Configure compass for use within rails, and provide the project configuration
+        # that came via the rails boot process.
+        CompassRails.check_for_double_boot!
+        Compass.discover_extensions!
+        CompassRails.configure_rails!(app)
+      else
+        CompassRails.initialize!(app.config.compass)
+      end
     end
   end
 end
